@@ -72,9 +72,43 @@ add_action('admin_notices', 'acf_events_manager_admin_notice_missing_acf');
 function acf_events_manager_maybe_enable_github_updates() {
     // Try to load the library from common locations.
     $puc_path = __DIR__ . '/plugin-update-checker/plugin-update-checker.php';
-    if (file_exists($puc_path)) {
-        require_once $puc_path;
-    }
+        // Try the default path.
+        if (file_exists($puc_path)) {
+            require_once $puc_path;
+        } else {
+            // Some ZIP downloads create a folder like plugin-update-checker-master.
+            foreach (glob(__DIR__ . '/plugin-update-checker*/plugin-update-checker.php') as $alt) {
+                if (is_file($alt)) {
+                    require_once $alt;
+                    break;
+                }
+            }
+        }
+
+        $updateChecker = null;
+        $repoUrl = 'https://github.com/daniellwaters/acf-events-manager';
+        $pluginSlug = plugin_basename(__FILE__);
+
+        if (class_exists('Puc_v4_Factory')) {
+            // Legacy, non-namespaced factory.
+            $updateChecker = Puc_v4_Factory::buildUpdateChecker($repoUrl, __FILE__, $pluginSlug);
+        } elseif (class_exists('YahnisElsts\\PluginUpdateChecker\\v5\\PucFactory')) {
+            // Newer, namespaced factory.
+            $updateChecker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker($repoUrl, __FILE__, $pluginSlug);
+        }
+
+        if ($updateChecker) {
+            // Prefer GitHub release assets if available.
+            if (method_exists($updateChecker, 'getVcsApi')) {
+                $api = $updateChecker->getVcsApi();
+                if ($api && method_exists($api, 'enableReleaseAssets')) {
+                    $api->enableReleaseAssets();
+                }
+            }
+            if (!defined('ACFEM_UPDATER_ENABLED')) {
+                define('ACFEM_UPDATER_ENABLED', true);
+            }
+        }
 
     if (class_exists('Puc_v4_Factory')) {
         $updateChecker = Puc_v4_Factory::buildUpdateChecker(
