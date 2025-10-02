@@ -3,7 +3,7 @@
 /*
 Plugin Name: ACF Events Manager
 Description: Provides the [event_date] shortcode to display event dates/times using Advanced Custom Fields.
-Version: 1.0.3
+Version: 1.0.4
 Author: Daniel Waters
 Author URI: https://github.com/daniellwaters
 Text Domain: acf-events-manager
