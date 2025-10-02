@@ -1,0 +1,25 @@
+{
+  "name": "daniellwaters/acf-events-manager",
+  "description": "ACF Events Manager - WordPress plugin that renders event dates/times via ACF and the [event_date] shortcode.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Daniel Waters",
+      "homepage": "https://github.com/daniellwaters"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "yahnis-elsts/plugin-update-checker": "^5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "ACFEventsManager\\": "src/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  }
+}
