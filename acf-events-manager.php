@@ -17,11 +17,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Composer autoloader (optional). If present, will load dependencies like Plugin Update Checker.
-$acfem_autoload = __DIR__ . '/vendor/autoload.php';
-if (file_exists($acfem_autoload)) {
-    require_once $acfem_autoload;
-}
+// No Composer autoloader. This plugin expects the Plugin Update Checker library in plugin-update-checker/.
 
 /**
  * Activation check: ensure Advanced Custom Fields is active.
@@ -74,33 +70,18 @@ add_action('admin_notices', 'acf_events_manager_admin_notice_missing_acf');
  * - Releases/tags on GitHub trigger update availability in WP.
  */
 function acf_events_manager_maybe_enable_github_updates() {
-    // Only in admin screens to avoid front-end overhead.
-    if (!is_admin()) {
-        return;
-    }
-
-    $paths = [
-        __DIR__ . '/vendor/plugin-update-checker/plugin-update-checker.php',
-        __DIR__ . '/plugin-update-checker/plugin-update-checker.php',
-    ];
-
-    foreach ($paths as $path) {
-        if (file_exists($path)) {
-            require_once $path;
-            break;
-        }
+    // Try to load the library from common locations.
+    $puc_path = __DIR__ . '/plugin-update-checker/plugin-update-checker.php';
+    if (file_exists($puc_path)) {
+        require_once $puc_path;
     }
 
     if (class_exists('Puc_v4_Factory')) {
         $updateChecker = Puc_v4_Factory::buildUpdateChecker(
             'https://github.com/daniellwaters/acf-events-manager',
             __FILE__,
-            'acf-events-manager'
+            plugin_basename(__FILE__)
         );
-        // Track the main branch by default; recommend using GitHub Releases with tags.
-        if (method_exists($updateChecker, 'setBranch')) {
-            $updateChecker->setBranch('main');
-        }
         // Prefer GitHub release assets if available.
         if (method_exists($updateChecker, 'getVcsApi')) {
             $api = $updateChecker->getVcsApi();
@@ -108,9 +89,31 @@ function acf_events_manager_maybe_enable_github_updates() {
                 $api->enableReleaseAssets();
             }
         }
+        // Mark updater as enabled so we can surface admin notices if missing.
+        if (!defined('ACFEM_UPDATER_ENABLED')) {
+            define('ACFEM_UPDATER_ENABLED', true);
+        }
     }
 }
-add_action('init', 'acf_events_manager_maybe_enable_github_updates');
+// Initialize as early as possible so background cron-based update checks can see it.
+add_action('plugins_loaded', 'acf_events_manager_maybe_enable_github_updates');
+
+/**
+ * Admin notice if the updater library is missing (so auto-updates won’t work).
+ */
+function acf_events_manager_admin_notice_missing_updater() {
+    if (!current_user_can('update_plugins')) {
+        return;
+    }
+    if (defined('ACFEM_UPDATER_ENABLED') && ACFEM_UPDATER_ENABLED) {
+        return;
+    }
+    echo '<div class="notice notice-warning"><p>' . esc_html__(
+        'ACF Events Manager: GitHub auto-updates are disabled because the Plugin Update Checker library is not present. Add the library to plugin-update-checker/.',
+        'acf-events-manager'
+    ) . '</p></div>';
+}
+add_action('admin_notices', 'acf_events_manager_admin_notice_missing_updater');
 
 /**
  * Shortcode to display event date/time based on ACF fields.

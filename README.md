@@ -13,7 +13,7 @@ A lightweight WordPress plugin that renders event dates/times from Advanced Cust
 - WordPress 5.6+
 - PHP 7.4+
 - Advanced Custom Fields (free or Pro)
-- Optional: Composer (for autoloading and the GitHub updater library)
+  
 
 ## Installation
 
@@ -22,17 +22,6 @@ A lightweight WordPress plugin that renders event dates/times from Advanced Cust
 3. Ensure your posts (or custom post types) have the ACF fields defined below.
 
 If ACF is not active, the plugin will not activate and will display a message asking you to enable ACF first.
-
-### Composer setup (optional)
-
-If you want auto-updates from GitHub or plan to add PHP classes under `src/`, install dependencies with Composer:
-
-```bash
-cd /path/to/wp-content/plugins/acf-events-manager
-composer install
-```
-
-This will generate `vendor/` and enable the Plugin Update Checker. The plugin auto-loads `vendor/autoload.php` if present.
 
 ## ACF Fields Expected
 
@@ -95,12 +84,9 @@ This plugin can self-update from GitHub using the Plugin Update Checker (PUC) li
 - Push this plugin code to that repo (see commands below).
 
 2) Add Plugin Update Checker (optional but recommended)
-- EITHER install via Composer into the plugin:
-	- Add composer.json:
-		- `"yahnis-elsts/plugin-update-checker": "^5.0"`
-	- Install dependencies inside this plugin folder.
-- OR drop the library folder into `plugin-update-checker/` inside the plugin directory.
-- The plugin will auto-detect either `vendor/plugin-update-checker/plugin-update-checker.php` or `plugin-update-checker/plugin-update-checker.php` and enable GitHub updates.
+- Download the library from https://github.com/YahnisElsts/plugin-update-checker (Download ZIP),
+- Place it in `plugin-update-checker/` inside this plugin directory.
+- The plugin will automatically load `plugin-update-checker/plugin-update-checker.php` if present.
 
 3) Tag releases for updates
 - Create GitHub Releases with semantic version tags (e.g., `v1.0.1`).
